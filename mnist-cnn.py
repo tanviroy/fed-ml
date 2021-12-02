@@ -8,7 +8,10 @@ num_classes = 10
 input_shape = (28, 28, 1)
 
 # splitting data into train and test sets
-(x_train, y_train), (x_test, y_test) = keras.datasets.mnist.load_data()
+#(x_train, y_train), (x_test, y_test) = keras.datasets.mnist.load_data()
+with np.load('mnist.npz', allow_pickle=True) as f:
+    x_train, y_train = f['x_train'], f['y_train']
+    x_test, y_test = f['x_test'], f['y_test']
 
 # scale images to range [0, 1]
 x_train = x_train.astype("float32") / 255
@@ -44,7 +47,7 @@ model.summary()
 
 # parameters for training
 batch_size = 128
-epochs = 15
+epochs = 1 #use epochs = 5
 
 model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["accuracy"])
 
