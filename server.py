@@ -46,7 +46,7 @@ view_count = 0
 
 def handle_new_client(clientsocket, address):
 
-    global random_facts
+    #global random_facts
     global view_count
     global x_train
 
@@ -82,7 +82,7 @@ def handle_new_client(clientsocket, address):
     #clientsocket.send(data.encode())
     clientsocket.send(data)
 
-    for i in range(1,6):
+    for i in range(1,2):
         data = dumps(x_train[(i*10):(i*10)+10])
         #data = dumps(x_train[10:20])
         print(len(data))
