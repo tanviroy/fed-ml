@@ -1,12 +1,17 @@
 import socket
 import json
-from pickle import dumps, loads
 import numpy as np
+from tensorflow import keras
+from tensorflow.keras import layers
+from tqdm import tqdm
+
+import sys
+
 
 clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 IP = '127.0.0.1'
-PORT = 5545
+PORT = 5005
 
 # connect to the server
 clientsocket.connect( (IP, PORT) )
@@ -14,33 +19,94 @@ clientsocket.connect( (IP, PORT) )
 
 # ---------------------------------SEQUENCE BEGINS-------------------------------------------
 
-# wait for intro message
-print(clientsocket.recv(1024).decode())   # --> returns a string
+# Intro Message from server
+print(clientsocket.recv(1024).decode())   # --> Welcome message from server
 
 # send back an OK response to proceed with the sequence
-clientsocket.send('OK'.encode())
+#clientsocket.send('OK'.encode())
 
 
-# wait for random facts
-#facts = clientsocket.recv(1024).decode()
-facts = clientsocket.recv(10000)
-facts = loads(facts)
-for i in range(0,5):
-    facts = np.concatenate((facts, loads(clientsocket.recv(10000))))
-print('----------------------------')
-print('Our set of facts!')
-print('----------------------------')
-print("x_train shape:", facts.shape)
-print(type(facts))
+with np.load('mnist.npz', allow_pickle=True) as f:
+    x_train, y_train = f['x_train'], f['y_train']
+    x_test, y_test = f['x_test'], f['y_test']
 
-#for fact in facts:
-#    print(fact[0], '- ('+fact[1]+')')     # print fact along with signature in brackets
+    # x_train
+    # --------------------------------------
+
+    print('========================')
+    print('Sending Training Samples')
+    print('========================')
+
+    batch = x_train[0:10].tolist()
+    data = json.dumps(batch)
+    clientsocket.send(data.encode())
+    print(clientsocket.recv(1024).decode())
+
+    for i in tqdm(range(10,10000,10)):
+        batch = x_train[i:i+10].tolist()
+        data = json.dumps(batch)
+        clientsocket.send(data.encode())
+        clientsocket.recv(1024).decode()
+        #print(clientsocket.recv(1024).decode())
+
+    # y_train
+    # --------------------------------------
+
+    print('=======================')
+    print('Sending Training Lables')
+    print('=======================')
+
+    batch = y_train[0:10].tolist()
+    data = json.dumps(batch)
+    clientsocket.send(data.encode())
+    print(clientsocket.recv(1024).decode())
+
+    for i in tqdm(range(10,10000,10)):
+        batch = y_train[i:i+10].tolist()
+        data = json.dumps(batch)
+        clientsocket.send(data.encode())
+        clientsocket.recv(1024).decode()
+        #print(clientsocket.recv(1024).decode())
+
+
+    # x_test
+    # --------------------------------------
+
+    print('=======================')
+    print('Sending Testing Samples')
+    print('=======================')
+
+    batch = x_test[0:10].tolist()
+    data = json.dumps(batch)
+    clientsocket.send(data.encode())
+    print(clientsocket.recv(1024).decode())
+
+    for i in tqdm(range(10,1000,10)):
+        batch = x_test[i:i+10].tolist()
+        data = json.dumps(batch)
+        clientsocket.send(data.encode())
+        clientsocket.recv(1024).decode()
+        #print(clientsocket.recv(1024).decode())
+
+    # y_test
+    # --------------------------------------
+
+    print('======================')
+    print('Sending Testing Lables')
+    print('======================')
+
+    batch = y_test[0:10].tolist()
+    data = json.dumps(batch)
+    clientsocket.send(data.encode())
+    print(clientsocket.recv(1024).decode())
+
+    for i in tqdm(range(10,1000,10)):
+        batch = y_test[i:i+10].tolist()
+        data = json.dumps(batch)
+        clientsocket.send(data.encode())
+        clientsocket.recv(1024).decode()
+        #print(clientsocket.recv(1024).decode())
 
 
 
 
-#print('\n\nWould you like to add a fact? (Y/N): ',end='')
-# ask user if they want to add a fact
-#choice = input()
-
-clientsocket.send('N'.encode())  # send choice to server
